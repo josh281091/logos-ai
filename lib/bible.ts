@@ -25,8 +25,9 @@ async function fetchFromGetBible(
   chapter: number,
   translation: string
 ): Promise<BiblePassage> {
-  const bookNum = BOOK_NUMBER[book];
-  if (!bookNum) throw new Error(`Unknown book: ${book}`);
+  const internalBook = BOOK_DISPLAY_TO_INTERNAL[book] ?? book;
+  const bookNum = BOOK_NUMBER[internalBook];
+  if (!bookNum) throw new Error(`Unknown book: ${book} (${internalBook})`);
 
   const url = `https://api.getbible.net/v2/${translation}/${bookNum}/${chapter}.json`;
   const res = await fetch(url, { next: { revalidate: 86400 } });
@@ -64,7 +65,8 @@ async function fetchFromBibleApi(
   chapter: number,
   translation: string
 ): Promise<BiblePassage> {
-  const ref = encodeURIComponent(`${book} ${chapter}`);
+  const internalBook = BOOK_DISPLAY_TO_INTERNAL[book] ?? book;
+  const ref = encodeURIComponent(`${internalBook} ${chapter}`);
   const url = `https://bible-api.com/${ref}?translation=${translation}&verse_numbers=true`;
   const res = await fetch(url, { next: { revalidate: 86400 } });
   if (!res.ok) throw new Error(`Bible API error: ${res.status}`);
@@ -129,8 +131,14 @@ const GERMAN_TO_ENGLISH: Record<string, string> = {
   "judas": "Jude", "offenbarung": "Revelation", "offb": "Revelation",
 };
 
+// Maps search input to display name used in sidebar
+const INTERNAL_TO_DISPLAY: Record<string, string> = Object.fromEntries(
+  Object.entries(BOOK_DISPLAY_TO_INTERNAL).map(([display, internal]) => [internal, display])
+);
+
 function resolveBookName(name: string): string {
-  return GERMAN_TO_ENGLISH[name.toLowerCase()] ?? name;
+  const english = GERMAN_TO_ENGLISH[name.toLowerCase()] ?? name;
+  return INTERNAL_TO_DISPLAY[english] ?? english;
 }
 
 export function parseReference(ref: string): {
@@ -149,36 +157,50 @@ export function parseReference(ref: string): {
   };
 }
 
-export const BOOKS_OF_THE_BIBLE = [
-  "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
-  "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel",
-  "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles",
-  "Ezra", "Nehemiah", "Esther", "Job", "Psalms", "Proverbs",
-  "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah",
-  "Lamentations", "Ezekiel", "Daniel", "Hosea", "Joel", "Amos",
-  "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah",
-  "Haggai", "Zechariah", "Malachi",
-  "Matthew", "Mark", "Luke", "John", "Acts",
-  "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians",
-  "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians",
-  "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews",
-  "James", "1 Peter", "2 Peter", "1 John", "2 John",
-  "3 John", "Jude", "Revelation",
-];
+// Display name → internal English key used by APIs
+export const BOOK_DISPLAY_TO_INTERNAL: Record<string, string> = {
+  "1. Mose": "Genesis", "2. Mose": "Exodus", "3. Mose": "Leviticus",
+  "4. Mose": "Numbers", "5. Mose": "Deuteronomy",
+  "Josua": "Joshua", "Richter": "Judges", "Ruth": "Ruth",
+  "1. Samuel": "1 Samuel", "2. Samuel": "2 Samuel",
+  "1. Könige": "1 Kings", "2. Könige": "2 Kings",
+  "1. Chronik": "1 Chronicles", "2. Chronik": "2 Chronicles",
+  "Esra": "Ezra", "Nehemia": "Nehemiah", "Ester": "Esther",
+  "Hiob": "Job", "Psalmen": "Psalms", "Sprüche": "Proverbs",
+  "Prediger": "Ecclesiastes", "Hohelied": "Song of Solomon",
+  "Jesaja": "Isaiah", "Jeremia": "Jeremiah", "Klagelieder": "Lamentations",
+  "Hesekiel": "Ezekiel", "Daniel": "Daniel", "Hosea": "Hosea",
+  "Joel": "Joel", "Amos": "Amos", "Obadja": "Obadiah", "Jona": "Jonah",
+  "Micha": "Micah", "Nahum": "Nahum", "Habakuk": "Habakkuk",
+  "Zefanja": "Zephaniah", "Haggai": "Haggai", "Sacharja": "Zechariah",
+  "Maleachi": "Malachi",
+  "Matthäus": "Matthew", "Markus": "Mark", "Lukas": "Luke",
+  "Johannes": "John", "Apostelgeschichte": "Acts", "Römer": "Romans",
+  "1. Korinther": "1 Corinthians", "2. Korinther": "2 Corinthians",
+  "Galater": "Galatians", "Epheser": "Ephesians", "Philipper": "Philippians",
+  "Kolosser": "Colossians", "1. Thessalonicher": "1 Thessalonians",
+  "2. Thessalonicher": "2 Thessalonians", "1. Timotheus": "1 Timothy",
+  "2. Timotheus": "2 Timothy", "Titus": "Titus", "Philemon": "Philemon",
+  "Hebräer": "Hebrews", "Jakobus": "James", "1. Petrus": "1 Peter",
+  "2. Petrus": "2 Peter", "1. Johannes": "1 John", "2. Johannes": "2 John",
+  "3. Johannes": "3 John", "Judas": "Jude", "Offenbarung": "Revelation",
+};
+
+export const BOOKS_OF_THE_BIBLE = Object.keys(BOOK_DISPLAY_TO_INTERNAL);
 
 export const CHAPTER_COUNTS: Record<string, number> = {
-  Genesis: 50, Exodus: 40, Leviticus: 27, Numbers: 36, Deuteronomy: 34,
-  Joshua: 24, Judges: 21, Ruth: 4, "1 Samuel": 31, "2 Samuel": 24,
-  "1 Kings": 22, "2 Kings": 25, "1 Chronicles": 29, "2 Chronicles": 36,
-  Ezra: 10, Nehemiah: 13, Esther: 10, Job: 42, Psalms: 150, Proverbs: 31,
-  Ecclesiastes: 12, "Song of Solomon": 8, Isaiah: 66, Jeremiah: 52,
-  Lamentations: 5, Ezekiel: 48, Daniel: 12, Hosea: 14, Joel: 3, Amos: 9,
-  Obadiah: 1, Jonah: 4, Micah: 7, Nahum: 3, Habakkuk: 3, Zephaniah: 3,
-  Haggai: 2, Zechariah: 14, Malachi: 4,
-  Matthew: 28, Mark: 16, Luke: 24, John: 21, Acts: 28,
-  Romans: 16, "1 Corinthians": 16, "2 Corinthians": 13, Galatians: 6,
-  Ephesians: 6, Philippians: 4, Colossians: 4, "1 Thessalonians": 5,
-  "2 Thessalonians": 3, "1 Timothy": 6, "2 Timothy": 4, Titus: 3,
-  Philemon: 1, Hebrews: 13, James: 5, "1 Peter": 5, "2 Peter": 3,
-  "1 John": 5, "2 John": 1, "3 John": 1, Jude: 1, Revelation: 22,
+  "1. Mose": 50, "2. Mose": 40, "3. Mose": 27, "4. Mose": 36, "5. Mose": 34,
+  "Josua": 24, "Richter": 21, "Ruth": 4, "1. Samuel": 31, "2. Samuel": 24,
+  "1. Könige": 22, "2. Könige": 25, "1. Chronik": 29, "2. Chronik": 36,
+  "Esra": 10, "Nehemia": 13, "Ester": 10, "Hiob": 42, "Psalmen": 150, "Sprüche": 31,
+  "Prediger": 12, "Hohelied": 8, "Jesaja": 66, "Jeremia": 52,
+  "Klagelieder": 5, "Hesekiel": 48, "Daniel": 12, "Hosea": 14, "Joel": 3, "Amos": 9,
+  "Obadja": 1, "Jona": 4, "Micha": 7, "Nahum": 3, "Habakuk": 3, "Zefanja": 3,
+  "Haggai": 2, "Sacharja": 14, "Maleachi": 4,
+  "Matthäus": 28, "Markus": 16, "Lukas": 24, "Johannes": 21, "Apostelgeschichte": 28,
+  "Römer": 16, "1. Korinther": 16, "2. Korinther": 13, "Galater": 6,
+  "Epheser": 6, "Philipper": 4, "Kolosser": 4, "1. Thessalonicher": 5,
+  "2. Thessalonicher": 3, "1. Timotheus": 6, "2. Timotheus": 4, "Titus": 3,
+  "Philemon": 1, "Hebräer": 13, "Jakobus": 5, "1. Petrus": 5, "2. Petrus": 3,
+  "1. Johannes": 5, "2. Johannes": 1, "3. Johannes": 1, "Judas": 1, "Offenbarung": 22,
 };
