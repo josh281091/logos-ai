@@ -101,7 +101,7 @@ export default function Home() {
         </div>
 
         {/* Bible panel */}
-        <div className={`${mobileTab === "bible" ? "flex" : "hidden"} md:flex flex-col flex-1 min-w-0 h-full overflow-hidden pb-16 md:pb-0`}>
+        <div className={`${mobileTab === "bible" ? "flex" : "hidden"} md:flex flex-col flex-1 min-w-0 overflow-hidden`} style={{height: "calc(100dvh - 64px)"}}>
           <BiblePanel
             book={book} chapter={chapter} translation={translation}
             selectedVerse={selectedVerse}
@@ -111,7 +111,7 @@ export default function Home() {
         </div>
 
         {/* AI panel */}
-        <div className={`${mobileTab === "ai" ? "flex" : "hidden"} md:flex flex-col h-full overflow-hidden pb-16 md:pb-0 w-full md:w-auto`}>
+        <div className={`${mobileTab === "ai" ? "flex" : "hidden"} md:flex flex-col overflow-hidden w-full md:w-auto`} style={{height: "calc(100dvh - 64px)"}}>
           <AIPanel
             selectedVerse={selectedVerse}
             currentBook={book} currentChapter={chapter}
