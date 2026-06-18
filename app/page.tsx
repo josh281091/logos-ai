@@ -64,7 +64,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="flex h-screen h-[100dvh] overflow-hidden bg-bg">
+    <div className="flex overflow-hidden bg-bg" style={{height: "100dvh"}}>
       {/* Desktop sidebar */}
       <div className="hidden md:block h-full overflow-hidden shrink-0">
         <Sidebar
@@ -101,7 +101,7 @@ export default function Home() {
         </div>
 
         {/* Bible panel */}
-        <div className={`${mobileTab === "bible" ? "flex" : "hidden"} md:flex flex-col flex-1 min-w-0 overflow-hidden`} style={{height: "calc(100dvh - 64px)"}}>
+        <div className={`${mobileTab === "bible" ? "flex" : "hidden"} md:flex flex-col flex-1 min-w-0 overflow-hidden`} style={{height: "calc(100dvh - 56px)"}}>
           <BiblePanel
             book={book} chapter={chapter} translation={translation}
             selectedVerse={selectedVerse}
@@ -111,7 +111,7 @@ export default function Home() {
         </div>
 
         {/* AI panel */}
-        <div className={`${mobileTab === "ai" ? "flex" : "hidden"} md:flex flex-col overflow-hidden w-full md:w-auto`} style={{height: "calc(100dvh - 64px)"}}>
+        <div className={`${mobileTab === "ai" ? "flex" : "hidden"} md:flex flex-col overflow-hidden w-full md:w-auto`} style={{height: "calc(100dvh - 56px)"}}>
           <AIPanel
             selectedVerse={selectedVerse}
             currentBook={book} currentChapter={chapter}
