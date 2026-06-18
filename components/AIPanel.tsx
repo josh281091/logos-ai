@@ -19,12 +19,11 @@ function generateId() {
 
 function parseCitationsFromText(text: string): string[] {
   const citations: string[] = [];
-  // Extract parenthetical references like (John 3:16), (Calvin, Institutes 1.2), etc.
   const paren = text.match(/\(([^)]{5,80})\)/g);
   if (paren) {
-    citations.push(...paren.slice(0, 5).map((c) => c.replace(/[()]/g, "")));
+    paren.slice(0, 5).forEach((c) => citations.push(c.replace(/[()]/g, "")));
   }
-  return [...new Set(citations)];
+  return Array.from(new Set(citations));
 }
 
 function parseFollowUps(text: string): string[] {
