@@ -12,20 +12,18 @@ export default function VerseBlock({ verse, isSelected, onClick }: Props) {
   return (
     <div
       onClick={() => onClick(verse)}
-      className={`group flex gap-3 px-3 py-2 rounded cursor-pointer transition-colors ${
+      className={`flex gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-150 ${
         isSelected
-          ? "bg-accent-light border-l-2 border-accent"
-          : "hover:bg-gray-50 border-l-2 border-transparent"
+          ? "bg-accent-dim border border-accent/30"
+          : "hover:bg-surface2 border border-transparent"
       }`}
     >
-      <span
-        className={`shrink-0 text-xs font-mono mt-0.5 w-6 text-right select-none ${
-          isSelected ? "text-accent font-bold" : "text-muted"
-        }`}
-      >
+      <span className={`shrink-0 text-xs font-mono mt-1 w-5 text-right select-none ${
+        isSelected ? "text-accent" : "text-muted"
+      }`}>
         {verse.verse}
       </span>
-      <p className="font-serif text-[15px] leading-relaxed text-ink">
+      <p className="font-serif text-[16px] leading-[1.75] text-ink">
         {verse.text.trim()}
       </p>
     </div>

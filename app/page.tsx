@@ -7,38 +7,31 @@ import AIPanel from "@/components/AIPanel";
 import type { BibleVerse, SermonDraft, Translation, AppMode } from "@/lib/types";
 
 const SERMONS_KEY = "logos_ai_sermons";
-
 function loadSermons(): SermonDraft[] {
   if (typeof window === "undefined") return [];
-  try {
-    return JSON.parse(localStorage.getItem(SERMONS_KEY) ?? "[]");
-  } catch {
-    return [];
-  }
+  try { return JSON.parse(localStorage.getItem(SERMONS_KEY) ?? "[]"); } catch { return []; }
 }
+function saveSermons(s: SermonDraft[]) { localStorage.setItem(SERMONS_KEY, JSON.stringify(s)); }
 
-function saveSermons(sermons: SermonDraft[]) {
-  localStorage.setItem(SERMONS_KEY, JSON.stringify(sermons));
-}
+type MobileTab = "nav" | "bible" | "ai";
 
 export default function Home() {
-  const [book, setBook] = useState("John");
+  const [book, setBook] = useState("Johannes");
   const [chapter, setChapter] = useState(1);
   const [translation, setTranslation] = useState<Translation>("schlachter");
   const [selectedVerse, setSelectedVerse] = useState<BibleVerse | null>(null);
   const [mode, setMode] = useState<AppMode>("study");
   const [sermons, setSermons] = useState<SermonDraft[]>([]);
   const [activeSermon, setActiveSermon] = useState<SermonDraft | null>(null);
-  const [mobileTab, setMobileTab] = useState<"bible" | "ai">("bible");
+  const [mobileTab, setMobileTab] = useState<MobileTab>("bible");
 
-  useEffect(() => {
-    setSermons(loadSermons());
-  }, []);
+  useEffect(() => { setSermons(loadSermons()); }, []);
 
   const handleNavigate = (b: string, ch: number) => {
     setBook(b);
     setChapter(ch);
     setSelectedVerse(null);
+    setMobileTab("bible");
   };
 
   const handleSaveSermon = (draft: Partial<SermonDraft>) => {
@@ -51,9 +44,7 @@ export default function Home() {
       createdAt: existing?.createdAt ?? Date.now(),
       updatedAt: Date.now(),
     };
-    const newSermons = existing
-      ? sermons.map((s) => (s.id === existing.id ? updated : s))
-      : [...sermons, updated];
+    const newSermons = existing ? sermons.map((s) => (s.id === existing.id ? updated : s)) : [...sermons, updated];
     setSermons(newSermons);
     saveSermons(newSermons);
     setActiveSermon(updated);
@@ -66,24 +57,25 @@ export default function Home() {
     if (activeSermon?.id === id) setActiveSermon(null);
   };
 
+  const tabs: { id: MobileTab; label: string; icon: string }[] = [
+    { id: "nav", label: "Navigation", icon: "☰" },
+    { id: "bible", label: "Bibel", icon: "✝" },
+    { id: "ai", label: "KI", icon: "✦" },
+  ];
+
   return (
-    <div className="flex h-screen overflow-hidden bg-parchment">
-      {/* Sidebar — hidden on mobile */}
-      <div className="hidden md:block h-full overflow-hidden">
+    <div className="flex h-screen h-[100dvh] overflow-hidden bg-bg">
+      {/* Desktop sidebar */}
+      <div className="hidden md:block h-full overflow-hidden shrink-0">
         <Sidebar
-          currentBook={book}
-          currentChapter={chapter}
-          translation={translation}
-          mode={mode}
-          sermons={sermons}
+          currentBook={book} currentChapter={chapter} translation={translation}
+          mode={mode} sermons={sermons}
           onNavigate={handleNavigate}
           onTranslationChange={setTranslation}
           onModeChange={setMode}
           onLoadSermon={(s) => {
             setActiveSermon(s);
             const parts = s.passage.split(" ");
-            // passage like "John 3" or "1 Corinthians 13"
-            // last token is chapter
             const ch = parseInt(parts[parts.length - 1], 10);
             const bk = parts.slice(0, -1).join(" ");
             if (!isNaN(ch) && bk) handleNavigate(bk, ch);
@@ -92,60 +84,57 @@ export default function Home() {
         />
       </div>
 
-      {/* Main panels */}
+      {/* Main area */}
       <div className="flex-1 flex min-w-0 h-full overflow-hidden">
-        {/* Mobile tab bar */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-border flex z-10">
-          <button
-            onClick={() => setMobileTab("bible")}
-            className={`flex-1 py-3 text-sm font-medium transition-colors ${
-              mobileTab === "bible" ? "text-accent border-t-2 border-accent" : "text-muted"
-            }`}
-          >
-            Bibel
-          </button>
-          <button
-            onClick={() => setMobileTab("ai")}
-            className={`flex-1 py-3 text-sm font-medium transition-colors ${
-              mobileTab === "ai" ? "text-accent border-t-2 border-accent" : "text-muted"
-            }`}
-          >
-            KI
-          </button>
+
+        {/* Mobile: nav panel */}
+        <div className={`${mobileTab === "nav" ? "flex" : "hidden"} md:hidden flex-col w-full h-full overflow-hidden`}>
+          <Sidebar
+            currentBook={book} currentChapter={chapter} translation={translation}
+            mode={mode} sermons={sermons}
+            onNavigate={handleNavigate}
+            onTranslationChange={setTranslation}
+            onModeChange={setMode}
+            onLoadSermon={(s) => { setActiveSermon(s); setMobileTab("bible"); }}
+            onDeleteSermon={handleDeleteSermon}
+          />
         </div>
 
         {/* Bible panel */}
-        <div
-          className={`${
-            mobileTab === "bible" ? "flex" : "hidden"
-          } md:flex flex-col flex-1 min-w-0 h-full overflow-hidden pb-12 md:pb-0`}
-        >
+        <div className={`${mobileTab === "bible" ? "flex" : "hidden"} md:flex flex-col flex-1 min-w-0 h-full overflow-hidden pb-16 md:pb-0`}>
           <BiblePanel
-            book={book}
-            chapter={chapter}
-            translation={translation}
+            book={book} chapter={chapter} translation={translation}
             selectedVerse={selectedVerse}
-            onVerseSelect={setSelectedVerse}
+            onVerseSelect={(v) => { setSelectedVerse(v); if (v) setMobileTab("ai"); }}
             onNavigate={handleNavigate}
           />
         </div>
 
         {/* AI panel */}
-        <div
-          className={`${
-            mobileTab === "ai" ? "flex" : "hidden"
-          } md:flex flex-col h-full overflow-hidden pb-12 md:pb-0 border-t border-border md:border-t-0`}
-          style={{ width: "100%", maxWidth: 380 }}
-        >
+        <div className={`${mobileTab === "ai" ? "flex" : "hidden"} md:flex flex-col h-full overflow-hidden pb-16 md:pb-0 w-full md:w-auto`}>
           <AIPanel
             selectedVerse={selectedVerse}
-            currentBook={book}
-            currentChapter={chapter}
-            mode={mode}
-            activeSermon={activeSermon}
+            currentBook={book} currentChapter={chapter}
+            mode={mode} activeSermon={activeSermon}
             onSaveSermon={handleSaveSermon}
           />
         </div>
+      </div>
+
+      {/* Mobile tab bar */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-border flex z-20 safe-bottom">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setMobileTab(t.id)}
+            className={`flex-1 py-3 flex flex-col items-center gap-0.5 transition-colors ${
+              mobileTab === t.id ? "text-accent" : "text-muted"
+            }`}
+          >
+            <span className="text-base">{t.icon}</span>
+            <span className="text-[10px] font-medium">{t.label}</span>
+          </button>
+        ))}
       </div>
     </div>
   );

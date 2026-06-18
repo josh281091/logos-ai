@@ -9,12 +9,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        parchment: "#f8f5f0",
-        ink: "#1a1a1a",
-        accent: "#3b6fd4",
-        "accent-light": "#e8eef8",
-        muted: "#6b6b6b",
-        border: "#e2ddd8",
+        bg: "#0f0f0f",
+        surface: "#1a1a1a",
+        surface2: "#242424",
+        border: "#2e2e2e",
+        ink: "#f0ede8",
+        accent: "#c9a96e",
+        "accent-dim": "#c9a96e22",
+        muted: "#888888",
       },
       fontFamily: {
         serif: ["Georgia", "Cambria", "Times New Roman", "serif"],

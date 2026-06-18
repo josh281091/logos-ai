@@ -12,42 +12,33 @@ export default function ChatMessage({ message, onFollowUp }: Props) {
 
   return (
     <div className={`flex flex-col gap-2 ${isUser ? "items-end" : "items-start"}`}>
-      <div
-        className={`max-w-[85%] rounded-lg px-4 py-3 text-sm leading-relaxed ${
-          isUser
-            ? "bg-accent text-white"
-            : "bg-white border border-border text-ink"
-        }`}
-      >
+      <div className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+        isUser
+          ? "bg-accent text-bg font-medium rounded-br-sm"
+          : "bg-surface2 text-ink border border-border rounded-bl-sm"
+      }`}>
         {message.content.split("\n").map((line, i) => (
-          <p key={i} className={i > 0 ? "mt-2" : ""}>
-            {line}
-          </p>
+          <p key={i} className={i > 0 && line ? "mt-2" : ""}>{line}</p>
         ))}
       </div>
 
-      {/* Citations */}
       {!isUser && message.citations && message.citations.length > 0 && (
-        <div className="flex flex-wrap gap-1 max-w-[85%]">
+        <div className="flex flex-wrap gap-1.5 max-w-[88%]">
           {message.citations.map((c, i) => (
-            <span
-              key={i}
-              className="text-xs bg-accent-light text-accent border border-accent/20 px-2 py-0.5 rounded-full"
-            >
+            <span key={i} className="text-xs bg-accent-dim text-accent border border-accent/20 px-2.5 py-1 rounded-full">
               {c}
             </span>
           ))}
         </div>
       )}
 
-      {/* Follow-up suggestions */}
       {!isUser && message.followUps && message.followUps.length > 0 && (
-        <div className="flex flex-col gap-1 max-w-[85%] w-full">
+        <div className="flex flex-col gap-1.5 max-w-[88%] w-full">
           {message.followUps.map((q, i) => (
             <button
               key={i}
               onClick={() => onFollowUp(q)}
-              className="text-left text-xs text-muted hover:text-accent border border-border hover:border-accent/40 rounded px-3 py-1.5 transition-colors bg-white"
+              className="text-left text-xs text-muted hover:text-accent border border-border hover:border-accent/40 rounded-xl px-3 py-2 transition-all bg-surface"
             >
               {q}
             </button>
