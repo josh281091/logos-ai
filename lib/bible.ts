@@ -82,16 +82,68 @@ export async function fetchPassage(
   return fetchFromBibleApi(book, chapter, translation);
 }
 
+// German to English book name mapping
+const GERMAN_TO_ENGLISH: Record<string, string> = {
+  "1 mose": "Genesis", "1. mose": "Genesis", "genesis": "Genesis",
+  "2 mose": "Exodus", "2. mose": "Exodus", "exodus": "Exodus",
+  "3 mose": "Leviticus", "3. mose": "Leviticus",
+  "4 mose": "Numbers", "4. mose": "Numbers",
+  "5 mose": "Deuteronomy", "5. mose": "Deuteronomy",
+  "josua": "Joshua", "richter": "Judges", "rut": "Ruth", "ruth": "Ruth",
+  "1 samuel": "1 Samuel", "1. samuel": "1 Samuel",
+  "2 samuel": "2 Samuel", "2. samuel": "2 Samuel",
+  "1 könige": "1 Kings", "1. könige": "1 Kings", "1 koenige": "1 Kings",
+  "2 könige": "2 Kings", "2. könige": "2 Kings", "2 koenige": "2 Kings",
+  "1 chronik": "1 Chronicles", "1. chronik": "1 Chronicles",
+  "2 chronik": "2 Chronicles", "2. chronik": "2 Chronicles",
+  "esra": "Ezra", "nehemia": "Nehemiah", "ester": "Esther", "esther": "Esther",
+  "hiob": "Job", "ijob": "Job",
+  "psalmen": "Psalms", "psalm": "Psalms", "psalms": "Psalms",
+  "sprüche": "Proverbs", "sprichwörter": "Proverbs",
+  "prediger": "Ecclesiastes", "hohelied": "Song of Solomon",
+  "jesaja": "Isaiah", "jesaia": "Isaiah",
+  "jeremia": "Jeremiah", "klagelieder": "Lamentations",
+  "hesekiel": "Ezekiel", "daniel": "Daniel",
+  "hosea": "Hosea", "joel": "Joel", "amos": "Amos",
+  "obadja": "Obadiah", "jona": "Jonah", "micha": "Micah",
+  "nahum": "Nahum", "habakuk": "Habakkuk", "zefanja": "Zephaniah",
+  "haggai": "Haggai", "sacharja": "Zechariah", "maleachi": "Malachi",
+  "matthäus": "Matthew", "markus": "Mark", "lukas": "Luke",
+  "johannes": "John", "apostelgeschichte": "Acts", "apg": "Acts",
+  "römer": "Romans", "roemer": "Romans",
+  "1 korinther": "1 Corinthians", "1. korinther": "1 Corinthians",
+  "2 korinther": "2 Corinthians", "2. korinther": "2 Corinthians",
+  "galater": "Galatians", "epheser": "Ephesians",
+  "philipper": "Philippians", "kolosser": "Colossians",
+  "1 thessalonicher": "1 Thessalonians", "1. thessalonicher": "1 Thessalonians",
+  "2 thessalonicher": "2 Thessalonians", "2. thessalonicher": "2 Thessalonians",
+  "1 timotheus": "1 Timothy", "1. timotheus": "1 Timothy",
+  "2 timotheus": "2 Timothy", "2. timotheus": "2 Timothy",
+  "titus": "Titus", "philemon": "Philemon", "hebräer": "Hebrews",
+  "jakobus": "James",
+  "1 petrus": "1 Peter", "1. petrus": "1 Peter",
+  "2 petrus": "2 Peter", "2. petrus": "2 Peter",
+  "1 johannes": "1 John", "1. johannes": "1 John",
+  "2 johannes": "2 John", "2. johannes": "2 John",
+  "3 johannes": "3 John", "3. johannes": "3 John",
+  "judas": "Jude", "offenbarung": "Revelation", "offb": "Revelation",
+};
+
+function resolveBookName(name: string): string {
+  return GERMAN_TO_ENGLISH[name.toLowerCase()] ?? name;
+}
+
 export function parseReference(ref: string): {
   book: string;
   chapter: number;
   verse?: number;
 } | null {
   const trimmed = ref.trim();
-  const match = trimmed.match(/^((?:\d\s+)?\w+(?:\s+\w+)*)\s+(\d+)(?::(\d+))?/i);
+  const match = trimmed.match(/^((?:\d\.?\s+)?\w+(?:\s+\w+)*)\s+(\d+)(?::(\d+))?/i);
   if (!match) return null;
+  const book = resolveBookName(match[1].trim());
   return {
-    book: match[1].trim(),
+    book,
     chapter: parseInt(match[2], 10),
     verse: match[3] ? parseInt(match[3], 10) : undefined,
   };
