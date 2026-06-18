@@ -46,7 +46,7 @@ export default function BiblePanel({
   const totalChapters = CHAPTER_COUNTS[book] ?? 1;
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 bg-bg">
+    <div className="flex-1 flex flex-col min-w-0 bg-bg overflow-hidden">
       {/* Search bar */}
       <div className="px-4 py-3 border-b border-border bg-surface shrink-0">
         <form onSubmit={handleSearch} className="flex gap-2">
