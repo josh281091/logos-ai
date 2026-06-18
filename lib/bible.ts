@@ -131,14 +131,11 @@ const GERMAN_TO_ENGLISH: Record<string, string> = {
   "judas": "Jude", "offenbarung": "Revelation", "offb": "Revelation",
 };
 
-// Maps search input to display name used in sidebar
-const INTERNAL_TO_DISPLAY: Record<string, string> = Object.fromEntries(
-  Object.entries(BOOK_DISPLAY_TO_INTERNAL).map(([display, internal]) => [internal, display])
-);
-
 function resolveBookName(name: string): string {
   const english = GERMAN_TO_ENGLISH[name.toLowerCase()] ?? name;
-  return INTERNAL_TO_DISPLAY[english] ?? english;
+  // Map internal English name back to German display name
+  const displayEntry = Object.entries(BOOK_DISPLAY_TO_INTERNAL).find(([, v]) => v === english);
+  return displayEntry ? displayEntry[0] : english;
 }
 
 export function parseReference(ref: string): {
